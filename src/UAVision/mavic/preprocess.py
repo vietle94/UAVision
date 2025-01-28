@@ -16,14 +16,13 @@ n3_binedges = (
 n3_binedges = np.fromstring(n3_binedges, sep="\n")
 
 
-def calculate_dlogbin(df, bin_label, flow_label=None, period_label=None):
+def calculate_concentration(df, bin_label, flow_label=None, period_label=None):
     """Calculate dN/dLogDp from OPC N2 and N3"""
     if len(bin_label) == 16:
         print("OPC-N2")
         dlog_bin = np.log10(n2_binedges[1:]) - np.log10(n2_binedges[:-1])
-        total_concentration = df[bin_label].sum(axis=1)
         dndlogdp = df[bin_label].div(dlog_bin, axis=1)
-        return dndlogdp, total_concentration
+        return dndlogdp
 
     elif len(bin_label) == 24:
         print("OPC-N3")
@@ -31,6 +30,5 @@ def calculate_dlogbin(df, bin_label, flow_label=None, period_label=None):
         total_volume = df[flow_label] / 100
         period = df[period_label] / 100
         concentration = df[bin_label].div(total_volume, axis=0).div(period, axis=0)
-        total_concentration = concentration.sum(axis=1)
         dndlogdp = concentration.div(dlog_bin, axis=1)
-        return dndlogdp, total_concentration
+        return concentration, dndlogdp
