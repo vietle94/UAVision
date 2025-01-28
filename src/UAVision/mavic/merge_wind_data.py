@@ -8,18 +8,14 @@ def merge_wind_data(dir_in, dir_out):
     dir_in = dir_in.replace("\\", "/") + "/"
     dir_out = dir_out.replace("\\", "/") + "/"
     file_path_wind = [x for x in glob.glob(dir_in + "/*.csv")]
-    file_names_wind = [os.path.basename(x) for x in file_path_wind]
-    appended_df_wind = []
-    for x, x_name in zip(file_path_wind, file_names_wind):
-        df_temp = pd.read_csv(x)
-        date_ = x_name.split("_")[1]
-        time_ = x_name.split("_")[2].split(".")[0].replace("-", ":")
-        date_time_ = pd.to_datetime(date_ + " " + time_)
-        df_temp["datetime"] = date_time_ + pd.to_timedelta(df_temp["Flight time"])
-        appended_df_wind.append(df_temp)
-
-    data_merged = pd.concat(appended_df_wind, ignore_index=True)
-    data_merged.to_csv(dir_out + "wind_merged.csv", index=False)
+    df = pd.DataFrame({})    
+    for file in file_path_wind:
+        file_name = os.path.basename(file)
+        start_time = pd.to_datetime(file_name[-23:-4], format='%Y-%m-%d_%H-%M-%S')
+        df_ = pd.read_csv(file)
+        df_['datetime'] = start_time + pd.to_timedelta(df_['Flight time'])
+        df = pd.concat([df, df_], ignore_index=True)
+    df.to_csv(dir_out + "wind_merged.csv", index=False)
     print(f"{len(file_path_wind)} folders merged")
 
 
