@@ -16,7 +16,7 @@ def merge_wind_data(dir_in, dir_out):
         df_['datetime'] = start_time + pd.to_timedelta(df_['Flight time'])
         df = pd.concat([df, df_], ignore_index=True)
     df.to_csv(dir_out + "wind_merged.csv", index=False)
-    print(f"{len(file_path_wind)} folders merged")
+    print(f"{len(file_path_wind)} files merged")
 
 
 if __name__ == "__main__":
