@@ -55,7 +55,9 @@ def merge_sensor_data(dir_in, dir_out):
                         data[key]["date"] + " " + data[key]["time"]
                     )
                     data[key].drop(["date", "time"], axis=1, inplace=True)
-            data[key]["datetime"] = data[key]["datetime"].dt.floor("1s")
+            data[key] = data[key].set_index("datetime").resample("1s").mean()
+            data[key] = data[key].reset_index()
+            data[key] = data[key].dropna()
             data[key].columns = [
                 x + "_" + key if "datetime" not in x else x for x in data[key].columns
             ]
