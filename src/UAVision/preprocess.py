@@ -98,8 +98,9 @@ def preprocess_mcda(file, size):
     df.columns = np.arange(df.columns.size)
     df[0] = pd.to_datetime(df[0], format="%Y%m%d%H%M%S")
 
-    df_bins_label = ["bin" + str(x) + "_mcda (dN/dlogDp)" for x in range(1, 176)]
-    df_pm_label = [
+    dndlog_label = ["bin" + str(x) + "_mcda (dN/dlogDp)" for x in range(1, 176)]
+    conc_label = ["bin" + str(x) + "_mcda (1/ccm)" for x in range(1, 176)]
+    pm_label = [
         "pcount_mcda",
         "pm1_mcda",
         "pm25_mcda",
@@ -107,15 +108,23 @@ def preprocess_mcda(file, size):
         "pm10_mcda",
         "pmtot_mcda",
     ]
-    df.columns = np.r_[["datetime"], df_bins_label, df_pm_label]
-    df.iloc[:, 1:-6] = df.iloc[:, 1:-6].map(
+    df.columns = np.r_[["datetime"], conc_label, pm_label]
+
+    # Convert hex to int
+    df[conc_label] = df[conc_label].map(
         lambda x: int(x, base=16)
-    )  # Convert hex to int
-    df = df.set_index("datetime").astype("float").reset_index()  # Convert to float
+    )
+    # Convert to float
+    df = df.set_index("datetime").astype("float").reset_index() 
     # Bin counts
-    df_bins = df.iloc[:, 1:176].copy().to_numpy().astype(float)
+    df_bins = df[conc_label].copy().to_numpy().astype(float)
+    # Calculate concentration cm-3
+    df[conc_label] = df[conc_label] / 10 / 46.67  # 10s averaged, 2.8L/min flow = 46.67 ccm/s
+
     # Calculate dN/dlogDp
-    df.iloc[:, 1:176] = df.iloc[:, 1:176] / dlog_bin / 10 / 46.67
+    dndlog = df[conc_label] / dlog_bin
+    dndlog.columns = dndlog_label
+    df = pd.concat([df, dndlog], axis=1)    
     # Calculate CDNC
     df["Nd_mcda (1/ccm)"] = df_bins.sum(axis=1) / 10 / 46.67
     # Calculate LWC
@@ -188,18 +197,22 @@ def preprocess_pops(file):
         "b14",
         "b15",
     ]
-
-    for particle_size, each_dlog_bin in zip(pop_binlab, dlog_bin):
-        df[particle_size] = (
-            df[particle_size] / (df[" POPS_Flow"] * 16.6667) / each_dlog_bin
-        )
-    df.columns = [
-        "bin" + str(int(x[1:]) + 1) + "_pops (dN/dlogDp)"
-        if re.search("b[0-9]+", x)
-        else x
-        for x in df.columns
-    ]
-
+    # df.columns = [
+    #     "bin" + str(int(x[1:]) + 1) + "_pops (1/ccm)"
+    #     if re.search("b[0-9]+", x)
+    #     else x
+    #     for x in df.columns
+    # ]
+    dndlog_label = ["bin" + str(x) + "_pops (dN/dlogDp)" for x in range(1, 17)]
+    conc_label = ["bin" + str(x) + "_pops (1/ccm)" for x in range(1, 17)]
+    df = df.rename(columns={x:y for x,y in zip(pop_binlab, conc_label)})
+    # Calculate concentration cm-3
+    df[conc_label] = df[conc_label].div(df[" POPS_Flow"] * 16.6667, axis=0)
+    # Calculate dN/dlogDp
+    dndlog = df[conc_label].div(dlog_bin, axis=1)
+    dndlog.columns = dndlog_label
+    df = pd.concat([df, dndlog], axis=1)
+    
     df = df.drop(
         [
             " Status",
