@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import re
 import json
 import importlib.resources
 
@@ -159,7 +158,7 @@ def preprocess_mcda(file, size):
     # Calculate ED
     top = (conc_perbin * mid_bin**3).sum(axis=1)
     bottom = (conc_perbin * mid_bin**2).sum(axis=1)
-    df["ED_mcda (um)"] = 2 * np.divide(
+    df["ED_mcda (um)"] = np.divide(
         top, bottom, out=np.zeros_like(top), where=bottom != 0
     )
     # Drop columns
