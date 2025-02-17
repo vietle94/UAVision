@@ -271,6 +271,7 @@ def calculate_midbin(pop_binedges):
 
 
 def cloudmask(df):
+    import re
     """cloud mask for mcda"""
     if df["datetime"][0] < pd.Timestamp("20221003", tz="UTC"):
         size = "water_0.15-17"
@@ -278,14 +279,12 @@ def cloudmask(df):
         size = "water_0.6-40"
     cda_midbin = np.array(mcda_midbin_all[size], dtype=float)
     cda_midbin = cda_midbin[81:]
-    binedges = calculate_binedges(cda_midbin)
-    dlog_bin = np.log10(binedges[1:]) - np.log10(binedges[:-1])
     # RH > 80%
     rh_cloud = df["rh_bme (%)"] > 80
     # Count > 1 in 10s with size > 2 um
-    bin_lab = [x for x in df.columns if "_mcda (dN/dlogDp)" in x]
+    bin_lab = [x for x in df.columns if re.search(r"bin[0-9]+_mcda \(1/ccm\)", x)]
     bin_lab_cloud = bin_lab[np.argmax(cda_midbin > 2) :]
-    bin_count = df[bin_lab] * dlog_bin
+    bin_count = df[bin_lab]
     count_cloud = bin_count[bin_lab_cloud].sum(axis=1) * 10 > 5
     cloudmask = rh_cloud & count_cloud
     return cloudmask
