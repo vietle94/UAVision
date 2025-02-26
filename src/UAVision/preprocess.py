@@ -8,10 +8,10 @@ mcda_midbin_all = (
 )
 mcda_midbin_all = json.loads(mcda_midbin_all)
 
-pop_binedges = (
+pops_binedges = (
     importlib.resources.files("UAVision").joinpath("pops_binedges.txt").read_text()
 )
-pop_binedges = np.fromstring(pop_binedges, sep="\n")
+pops_binedges = np.fromstring(pops_binedges, sep="\n")
 
 
 def calculate_height(p0, p1, T0, T1):
@@ -68,7 +68,7 @@ def preprocess_cpc(file):
     time_col = df.pop("datetime")
     df.insert(0, "datetime", time_col)
     df = df.rename(
-        {"N conc(1/ccm)": "N_conc_cpc(1/ccm)", "Pressure (hPa)": "press_cpc (hPa)"},
+        {"N conc(1/ccm)": "N_conc_cpc (cm-3)", "Pressure (hPa)": "press_cpc (hPa)"},
         axis=1,
     )
     return df
@@ -98,7 +98,7 @@ def preprocess_mcda(file, size):
     df[0] = pd.to_datetime(df[0], format="%Y%m%d%H%M%S")
 
     dndlog_label = ["bin" + str(x) + "_mcda (dN/dlogDp)" for x in range(1, 176)]
-    conc_label = ["bin" + str(x) + "_mcda (1/ccm)" for x in range(1, 176)]
+    conc_label = ["bin" + str(x) + "_mcda (cm-3)" for x in range(1, 176)]
     pm_label = [
         "pcount_mcda",
         "pm1_mcda",
@@ -125,7 +125,7 @@ def preprocess_mcda(file, size):
     dndlog.columns = dndlog_label
     df = pd.concat([df, dndlog], axis=1)    
     # Calculate CDNC
-    df["Nd_mcda (1/ccm)"] = df_bins.sum(axis=1) / 10 / 46.67
+    df["Nd_mcda (cm-3)"] = df_bins.sum(axis=1) / 10 / 46.67
     # Calculate LWC
     conc_perbin = df_bins / 10 / (2.8e-3 / 60)
     lwc_perbin = conc_perbin * 1e6 * np.pi / 6 * (mid_bin * 1e-6) ** 3
@@ -177,8 +177,8 @@ def preprocess_pops(file):
     time_col = df.pop("datetime")
     df.insert(0, "datetime", time_col)
 
-    dlog_bin = np.log10(pop_binedges[1:]) - np.log10(pop_binedges[:-1])
-    pop_binlab = [
+    dlog_bin = np.log10(pops_binedges[1:]) - np.log10(pops_binedges[:-1])
+    pops_binlab = [
         "b0",
         "b1",
         "b2",
@@ -197,14 +197,14 @@ def preprocess_pops(file):
         "b15",
     ]
     # df.columns = [
-    #     "bin" + str(int(x[1:]) + 1) + "_pops (1/ccm)"
+    #     "bin" + str(int(x[1:]) + 1) + "_pops (cm-3)"
     #     if re.search("b[0-9]+", x)
     #     else x
     #     for x in df.columns
     # ]
     dndlog_label = ["bin" + str(x) + "_pops (dN/dlogDp)" for x in range(1, 17)]
-    conc_label = ["bin" + str(x) + "_pops (1/ccm)" for x in range(1, 17)]
-    df = df.rename(columns={x:y for x,y in zip(pop_binlab, conc_label)})
+    conc_label = ["bin" + str(x) + "_pops (cm-3)" for x in range(1, 17)]
+    df = df.rename(columns={x:y for x,y in zip(pops_binlab, conc_label)})
     # Calculate concentration cm-3
     df[conc_label] = df[conc_label].div(df[" POPS_Flow"] * 16.6667, axis=0)
     # Calculate dN/dlogDp
@@ -243,7 +243,7 @@ def preprocess_pops(file):
     )
     df = df.rename(
         {
-            " PartCon": "N_conc_pops (1/ccm)",
+            " PartCon": "N_conc_pops (cm-3)",
             " P": "press_pops (hPa)",
             " POPS_Flow": "flow_rate_pops (l/m)",
         },
@@ -263,17 +263,17 @@ def calculate_binedges(midbin):
     return binedges
 
 
-def calculate_midbin(pop_binedges):
-    """calculate midbin for pop"""
-    # pop_binedges = np.loadtxt('pops_binedges.txt')
-    pop_midbin = (pop_binedges[1:] + pop_binedges[:-1]) / 2
-    return pop_midbin
+def calculate_midbin(pops_binedges):
+    """calculate midbin for pops"""
+    # pops_binedges = np.loadtxt('pops_binedges.txt')
+    pops_midbin = (pops_binedges[1:] + pops_binedges[:-1]) / 2
+    return pops_midbin
 
 
 def cloudmask(df):
     import re
     """cloud mask for mcda"""
-    if df["datetime"][0] < pd.Timestamp("20221003", tz="UTC"):
+    if df["datetime"][0] < pd.Timestamp("20221003"):
         size = "water_0.15-17"
     else:
         size = "water_0.6-40"
@@ -282,7 +282,7 @@ def cloudmask(df):
     # RH > 80%
     rh_cloud = df["rh_bme (%)"] > 80
     # Count > 1 in 10s with size > 2 um
-    bin_lab = [x for x in df.columns if re.search(r"bin[0-9]+_mcda \(1/ccm\)", x)]
+    bin_lab = [x for x in df.columns if re.search(r"bin[0-9]+_mcda \(cm-3\)", x)]
     bin_lab_cloud = bin_lab[np.argmax(cda_midbin > 2) :]
     bin_count = df[bin_lab]
     count_cloud = bin_count[bin_lab_cloud].sum(axis=1) * 10 > 5
