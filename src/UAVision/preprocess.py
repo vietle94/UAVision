@@ -64,7 +64,7 @@ def preprocess_cpc(file):
     df = df.dropna(axis=0)
     df = df.reset_index(drop=True)
     df["datetime"] = pd.to_datetime(df["date_time"])
-    df.replace({"N conc(1/ccm)": {0: np.nan}}, inplace=True) # 0 values are invalid
+    df.replace(0, np.nan, inplace=True) # 0 values are invalid
     df = df.drop(["date_time"], axis=1)
     time_col = df.pop("datetime")
     df.insert(0, "datetime", time_col)
