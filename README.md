@@ -13,12 +13,6 @@ It provides preprocessing utilities, concentration calculations.
 - UAVision.mavic.preprocess — functions like calculate_concentration, calculate_lag.
 - Package data: /bin_edges/*.txt
 
-## Installation
-Install from the project root (editable):
-```sh
-pip install -e .
-```
-
 ## Example usage
 ```sh
 from UAVision.preprocess import preprocess_mcda
