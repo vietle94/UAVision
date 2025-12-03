@@ -10,7 +10,7 @@ readme = "README.md"
 authors = [{ name = "VIET LE", email = "viet.le@fmi.fi" }]
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
-dependencies = ["numpy", "matplotlib", "pandas", "json"]
+dependencies = ["numpy", "matplotlib", "pandas"]
 
 [tool.setuptools.packages.find]
 where = ["src/"]
