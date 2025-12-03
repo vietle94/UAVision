@@ -109,7 +109,6 @@ def preprocess_mcda(file, size):
     # calculate size dlog_bin
     print(size)
     mid_bin = np.array(mcda_midbin_all[size], dtype=float)
-    mid_bin = mid_bin[81:]
     binedges = np.append(
         np.append(
             mid_bin[0] - (-mid_bin[0] + mid_bin[1]) / 2,
@@ -121,14 +120,14 @@ def preprocess_mcda(file, size):
 
     # Load file
     df = pd.read_csv(file, skiprows=1, header=None, dtype=str)
-    df = df.iloc[:, np.r_[[0], 82:257, -6:0]]
+    df = df.iloc[:, np.r_[0:257, -6:0]]
     df = df.dropna(axis=0)
     df = df.reset_index(drop=True)
     df.columns = np.arange(df.columns.size)
     df[0] = pd.to_datetime(df[0], format="%Y%m%d%H%M%S")
 
-    dndlog_label = ["bin" + str(x) + "_mcda (dN/dlogDp)" for x in range(1, 176)]
-    conc_label = ["bin" + str(x) + "_mcda (cm-3)" for x in range(1, 176)]
+    dndlog_label = ["bin" + str(x) + "_mcda (dN/dlogDp)" for x in range(1, 257)]
+    conc_label = ["bin" + str(x) + "_mcda (cm-3)" for x in range(1, 257)]
     pm_label = [
         "pcount_mcda",
         "pm1_mcda",

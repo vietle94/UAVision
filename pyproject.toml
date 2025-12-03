@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "UAVision"
-version = "1.0.0"
+version = "1.0.1"
 description = "UAV instrument data processing"
 readme = "README.md"
 authors = [{ name = "VIET LE", email = "viet.le@fmi.fi" }]
