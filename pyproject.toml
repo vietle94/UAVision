@@ -3,7 +3,7 @@ requires = ["setuptools>=75", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "UAVison"
+name = "UAVision"
 version = "1.0.0"
 description = "UAV instrument data processing"
 readme = "README.md"
