@@ -4,10 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "UAVison"
-version = "0.1.0"
+version = "1.0.0"
 description = "UAV instrument data processing"
+readme = "README.md"
+authors = [{ name = "vIET LE", email = "viet.le@fmi.fi" }]
+license = { file = "LICENSE" }
 requires-python = ">=3.11"
-dependencies = ["numpy", "matplotlib", "pandas", "plotly"]
+dependencies = ["numpy", "matplotlib", "pandas", "json"]
 
 [tool.setuptools.packages.find]
 where = ["src/"]
+
+[tool.setuptools.package-data]
+myModule = ["bin_edges/*.txt"]

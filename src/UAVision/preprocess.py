@@ -4,18 +4,25 @@ import json
 import importlib.resources
 
 mcda_midbin_all = (
-    importlib.resources.files("UAVision").joinpath("mcda_midbin_all.txt").read_text()
+    importlib.resources.files("UAVision.bin_edges").joinpath("mcda_midbin_all.txt").read_text()
 )
 mcda_midbin_all = json.loads(mcda_midbin_all)
 
 pops_binedges = (
-    importlib.resources.files("UAVision").joinpath("pops_binedges.txt").read_text()
+    importlib.resources.files("UAVision.bin_edges").joinpath("pops_binedges.txt").read_text()
 )
 pops_binedges = np.fromstring(pops_binedges, sep="\n")
 
 
 def calculate_height(p0, p1, T0, T1):
-    """Calculate height based on hydrostatic pressure equation, assuming a uniform layer"""
+    """
+    Calculate height based on hydrostatic pressure equation, assuming a uniform layer
+    
+    p0: pressure at lower level (hPa)
+    p1: pressure at upper level (hPa)
+    T0: temperature at lower level (K)
+    T1: temperature at upper level (K)
+    """
     R = 287.05
     g = 9.80665
     height = R / g * ((T0 + T1) / 2 + 273.15) * np.log(p0 / p1)
@@ -23,7 +30,14 @@ def calculate_height(p0, p1, T0, T1):
 
 
 def calculate_height_df(df, p, T):
-    """Advance calculation of height based on hydrostatic pressure equation, assuming mini uniform layer"""
+    """
+    Advance calculation of height based on hydrostatic pressure equation, 
+    assuming mini uniform layer
+    df: dataframe containing pressure and temperature columns
+    p: pressure column name (string)
+    T: temperature column name (string)
+    return: dataframe with height column added
+    """
     df_height = df.copy()
     df_height.dropna(subset=p, inplace=True)
     height = np.zeros_like(df_height[p])
@@ -41,6 +55,11 @@ def calculate_height_df(df, p, T):
 
 
 def preprocess_bme(file):
+    """
+    BME processing
+    file: path to bme csv file (string)
+    return: processed dataframe
+    """
     df = pd.read_csv(file)
     df = df.dropna(axis=0)
     df = df.reset_index(drop=True)
@@ -60,6 +79,11 @@ def preprocess_bme(file):
 
 
 def preprocess_cpc(file):
+    """
+    CPC processing
+    file: path to cpc csv file (string)
+    return: processed dataframe
+    """
     df = pd.read_csv(file)
     df = df.dropna(axis=0)
     df = df.reset_index(drop=True)
@@ -76,7 +100,12 @@ def preprocess_cpc(file):
 
 
 def preprocess_mcda(file, size):
-    """mCDA processing, calculate derived parameters as well"""
+    """
+    mCDA processing, calculate derived parameters as well
+    file: path to mcda csv file (string)
+    size: size category, ['PSL_0.6-40', 'PSL_0.15-17', 'water_0.6-40', 'water_0.15-17']
+    return: processed dataframe
+    """
     # calculate size dlog_bin
     print(size)
     mid_bin = np.array(mcda_midbin_all[size], dtype=float)
@@ -168,7 +197,11 @@ def preprocess_mcda(file, size):
 
 
 def preprocess_pops(file):
-    """POPS processing"""
+    """
+    POPS processing
+    file: path to pops csv file (string)
+    return: processed dataframe
+    """
     df = pd.read_csv(file)
     df = df.dropna(axis=0)
     df = df.reset_index(drop=True)
@@ -254,7 +287,11 @@ def preprocess_pops(file):
 
 
 def calculate_binedges(midbin):
-    """calculate bin edges for mcda mid bin"""
+    """
+    calculate bin edges from mid bin
+    midbin: mid bin array
+    return: binedges array
+    """
     binedges = np.append(
         np.append(
             midbin[0] - (-midbin[0] + midbin[1]) / 2, (midbin[:-1] + midbin[1:]) / 2
@@ -265,7 +302,11 @@ def calculate_binedges(midbin):
 
 
 def calculate_midbin(pops_binedges):
-    """calculate midbin for pops"""
+    """
+    calculate midbin from bin edges
+    pops_binedges: binedges array
+    return: midbin array
+    """
     # pops_binedges = np.loadtxt('pops_binedges.txt')
     pops_midbin = (pops_binedges[1:] + pops_binedges[:-1]) / 2
     return pops_midbin
