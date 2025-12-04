@@ -1,22 +1,13 @@
 from __future__ import annotations
 
 import importlib
-import importlib.metadata as _metadata
 from typing import Any
-
-# package version (fall back to static when not installed)
-try:
-    __version__ = _metadata.version("UAVision")
-except _metadata.PackageNotFoundError:
-    __version__ = "1.0.0"
 
 # submodules provided by this package; they will be imported lazily
 _SUBMODULES = {
-    "mavic",
-    "bme",
-    "cpc",
-    "mcda",
-    "pops"
+    "merge_sensor_data",
+    "merge_wind_data",
+    "preprocess",
 }
 
 __all__ = list(_SUBMODULES) + ["__version__"]
@@ -34,8 +25,3 @@ def __getattr__(name: str) -> Any:
         globals()[name] = module  # cache on the package module
         return module
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def __dir__() -> list[str]:
-    # include lazy submodules in attribute listings (help(), tab-completion)
-    return sorted(list(globals().keys()) + list(_SUBMODULES))
