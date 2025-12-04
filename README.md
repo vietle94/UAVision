@@ -43,7 +43,6 @@ df = preprocess_mcda("data_path/datafile.csv", # path to mcda csv file (string)
 #                           If an array-like is provided, it must be length 256.
 #    return: processed dataframe
 
-
 #    POPS processing
 from UAVision.pops.preprocess import preprocess_pops
 df = preprocess_pops("data_path/datafile.csv", # path to pops csv file (string)
@@ -59,10 +58,33 @@ from UAVision.cpc.preprocess import preprocess_cpc
 df = preprocess_cpc("data_path/datafile.csv") # path to cpc csv file (string)
 #    return: processed dataframe
 
+
 #    BME processing
 from UAVision.bme.preprocess import preprocess_bme
 df = preprocess_bme("data_path/datafile.csv") # path to bme csv file (string)
 #    return: processed dataframe
+
+####################################################################################
+# Check default bins
+####################################################################################
+# Check the mcda bins
+mcda_midbin_all = UAVision.mcda.preprocess.mcda_midbin_all
+print(mcda_midbin_all["water_0.15-17"])
+
+
+# Check the pops bins
+pops_binedges = UAVision.pops.preprocess.pops_binedges
+print(pops_binedges)
+
+
+# Check the OPC bins
+# OPC N2
+n2_binedges = UAVision.mavic.preprocess.n2_binedges
+print(n2_binedges)
+
+# OPC N3
+n3_binedges = UAVision.mavic.preprocess.n3_binedges
+print(n3_binedges)
 
 ```
 
