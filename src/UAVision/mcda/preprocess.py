@@ -32,10 +32,6 @@ def preprocess_mcda(file, size):
                 f"size '{size}' not found. Valid keys: {list(mcda_midbin_all.keys())}"
             )
         mid_bin = np.array(mcda_midbin_all[size], dtype=float)
-        if mid_bin.size != 256:
-            raise ValueError(
-                f"Mid-bin array for size '{size}' must have length 256, got {mid_bin.size}."
-            )
     else:
         raise TypeError("size must be a key string or an array-like of 256 mid-bin values")
 
