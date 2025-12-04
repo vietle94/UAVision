@@ -3,37 +3,69 @@ UAVision is a Python package for UAV instrument data processing (particle counte
 It provides preprocessing utilities, concentration calculations.
 
 ## Features
-- Preprocessing and derived metrics for MCDA, POPS and other instruments.
-- OPC / Mavic helpers for concentration and lag calculations.
-- Included bin-edge resources for common instruments (mcda, pops, opc).
-- For mcda, there are 4 options for sizes: ['PSL_0.6-40', 'PSL_0.15-17', 'water_0.6-40', 'water_0.15-17']
+- Preprocessing helpers and utilities for particle counters and sensor streams
+- Concentration / lag helpers for aerosol instruments (OPC / Mavic-like devices)
+- Bundled bin-edge and mid-bin resources for common instrument presets
+- Lazy-loading top-level submodules for fast imports
 
-## Key modules (examples)
-- UAVision.preprocess — functions like preprocess_mcda, preprocess_pops, calculate_height_df.
-- UAVision.mavic.preprocess — functions like calculate_concentration, calculate_lag.
+## Package layout
+Top-level submodules (imported lazily): `mavic`, `bme`, `cpc`, `mcda`, `pops`
 
-## Example usage
+## Installation
+From PyPI (when published):
 ```sh
-from UAVision.preprocess import preprocess_mcda
-df = preprocess_mcda("data_path/datafile.csv", size="water_0.15-17")
+pip install UAVision
 ```
-The bins and bins can be found as
+
+From local source (development install):
 ```sh
+git clone https://github.com/vietle94/UAVision.git
+cd UAVision
+pip install -e .
+```
+
+## Quick usage
+Show package version and available submodules:
+```py
 import UAVision
+print(UAVision.__version__)
+print(UAVision.__all__)  # declared submodules
+```
 
-mcda_midbin_all = UAVision.preprocess.mcda_midbin_all
-print(mcda_midbin_all["water_0.15-17"])
+Access a submodule (imports lazily on first access):
+```py
+#    mCDA processing, calculate derived parameters as well
+from UAVision.mcda.preprocess import preprocess_mcda
+df = preprocess_mcda("data_path/datafile.csv", # path to mcda csv file (string)
+                    size) # size category string, one of the following
+#                           ['PSL_0.6-40', 'PSL_0.15-17', 'water_0.6-40', 'water_0.15-17'] OR
+#                           an array-like of mid-bin values (list/tuple/ndarray)
+#                           If an array-like is provided, it must be length 256.
+#    return: processed dataframe
 
-pops_binedges = UAVision.preprocess.pops_binedges
-print(pops_binedges)
 
-import UAVision.mavic
-n2_binedges = UAVision.mavic.preprocess.n2_binedges
-print(n2_binedges)
+#    POPS processing
+from UAVision.pops.preprocess import preprocess_pops
+df = preprocess_pops("data_path/datafile.csv", # path to pops csv file (string)
+                    size=None, # optional. If None uses bundled pops_binedges (bin edges).
+                            # If array-like is provided it must be the bin edges with length 17.
+                    drop_aux=True) # bool, if True drop auxiliary columns (default True). 
+                            # If False keep them.
+#    return: processed dataframe
 
-n3_binedges = UAVision.mavic.preprocess.n3_binedges
-print(n3_binedges)
+
+#    CPC processing
+from UAVision.cpc.preprocess import preprocess_cpc
+df = preprocess_cpc("data_path/datafile.csv") # path to cpc csv file (string)
+#    return: processed dataframe
+
+#    BME processing
+from UAVision.bme.preprocess import preprocess_bme
+df = preprocess_bme("data_path/datafile.csv") # path to bme csv file (string)
+#    return: processed dataframe
+
 ```
 
 # Contributing / Contact
+Github: https://github.com/vietle94/UAVision
 Author: viet.le@fmi.fi — pull requests and bug reports welcome.
