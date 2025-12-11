@@ -20,7 +20,7 @@ def preprocess_pops(file, size=None, drop_aux=True):
     df = pd.read_csv(file)
     df = df.dropna(axis=0)
     df = df.reset_index(drop=True)
-    df["datetime"] = pd.to_datetime(df["DateTime"], unit="s") + pd.Timedelta("2hour")
+    df["datetime"] = pd.to_datetime(df["DateTime"], unit="s")
     df = df.set_index("datetime").resample("1s").mean().dropna().reset_index()
     df = df.drop(["DateTime"], axis=1)
     time_col = df.pop("datetime")
