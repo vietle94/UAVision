@@ -62,4 +62,6 @@ def preprocess_bme(file):
         },
         axis=1,
     )
+    df = calculate_height_df(df, "press_bme (hPa)", "temp_bme (C)")
+    df = df.rename({"height": "height_bme (m)"}, axis=1)
     return df
