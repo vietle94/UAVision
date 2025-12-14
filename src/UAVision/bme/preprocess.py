@@ -21,9 +21,9 @@ def calculate_height_df(df, p, T):
     Advance calculation of height based on hydrostatic pressure equation, 
     assuming mini uniform layer
     df: dataframe containing pressure and temperature columns
-    p: pressure column name (string)
-    T: temperature column name (string)
-    return: dataframe with height column added
+    p: pressure column name (string) (hPa)
+    T: temperature column name (string) (C)
+    return: dataframe with height column added (meters)
     """
     df_height = df.copy()
     df_height.dropna(subset=p, inplace=True)
