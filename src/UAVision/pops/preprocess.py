@@ -80,7 +80,6 @@ def preprocess_pops(file, size=None, drop_aux=True):
                 " LDTemp",
                 " LaserFB",
                 " LD_Mon",
-                " Temp",
                 " BatV",
                 " Laser_Current",
                 " Flow_Set",
@@ -103,6 +102,7 @@ def preprocess_pops(file, size=None, drop_aux=True):
             " PartCon": "N_conc_pops (cm-3)",
             " P": "press_pops (hPa)",
             " POPS_Flow": "flow_rate_pops (l/m)",
+            " Temp": "temp_pops (C)"
         },
         axis=1,
     )
