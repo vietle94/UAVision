@@ -2,14 +2,21 @@ import importlib.resources
 import json
 import numpy as np
 import pandas as pd
+import re
+from numpy.typing import NDArray
+from os import PathLike
+from typing import Sequence
 
-mcda_midbin_all = (
-    importlib.resources.files("UAVision.bin_edges").joinpath("mcda_midbin_all.txt").read_text()
+mcda_midbin_all: dict[str, list[float]] = json.loads(
+    importlib.resources.files("UAVision.bin_edges")
+    .joinpath("mcda_midbin_all.txt")
+    .read_text()
 )
-mcda_midbin_all = json.loads(mcda_midbin_all)
 
 
-def preprocess_mcda(file, size):
+def preprocess_mcda(
+    file: str | PathLike[str], size: str | Sequence[float] | NDArray[np.float64]
+) -> pd.DataFrame:
     """
     mCDA processing, calculate derived parameters as well
     file: path to mcda csv file (string)
@@ -33,7 +40,9 @@ def preprocess_mcda(file, size):
             )
         mid_bin = np.array(mcda_midbin_all[size], dtype=float)
     else:
-        raise TypeError("size must be a key string or an array-like of 256 mid-bin values")
+        raise TypeError(
+            "size must be a key string or an array-like of 256 mid-bin values"
+        )
 
     # calculate size dlog_bin
     print(size)
@@ -48,7 +57,8 @@ def preprocess_mcda(file, size):
 
     # Load file
     df = pd.read_csv(file, skiprows=1, header=None, dtype=str)
-    df = df.iloc[:, np.r_[0:257, -6:0]]
+    col_indices = list(range(257)) + list(range(df.shape[1] - 6, df.shape[1]))
+    df = df.iloc[:, col_indices]
     df = df.dropna(axis=0)
     df = df.reset_index(drop=True)
     df.columns = np.arange(df.columns.size)
@@ -67,22 +77,22 @@ def preprocess_mcda(file, size):
     df.columns = np.r_[["datetime"], conc_label, pm_label]
 
     # Convert hex to int
-    df[conc_label] = df[conc_label].map(
-        lambda x: int(x, base=16)
-    )
+    df[conc_label] = df[conc_label].map(lambda x: int(x, base=16))
     # Convert to float
-    df = df.set_index("datetime").astype("float").reset_index() 
+    df = df.set_index("datetime").astype("float").reset_index()
     # Bin counts
     df_bins = df[conc_label].copy().to_numpy().astype(float)
     # Calculate concentration cm-3
-    df[conc_label] = df[conc_label] / 10 / 46.67  # 10s averaged, 2.8L/min flow = 46.67 ccm/s
+    df[conc_label] = (
+        df[conc_label] / 10 / 46.67
+    )  # 10s averaged, 2.8L/min flow = 46.67 ccm/s
 
     # Calculate dN/dlogDp
     dndlog = df[conc_label] / dlog_bin
     dndlog.columns = dndlog_label
-    df = pd.concat([df, dndlog], axis=1)    
+    df = pd.concat([df, dndlog], axis=1)
     # Calculate CDNC
-    df["Nd_mcda (cm-3)"] = df_bins.sum(axis=1) / 10 / 46.67
+    df["And_mcda (cm-3)"] = df_bins.sum(axis=1) / 10 / 46.67
     # Calculate LWC
     conc_perbin = df_bins / 10 / (2.8e-3 / 60)
     lwc_perbin = conc_perbin * 1e6 * np.pi / 6 * (mid_bin * 1e-6) ** 3
@@ -123,9 +133,12 @@ def preprocess_mcda(file, size):
     return df
 
 
-def cloudmask(df):
-    import re
-    """cloud mask for mcda"""
+def cloudmask(df: pd.DataFrame) -> pd.Series:
+    """
+    Cloud mask for mcda
+    df: dataframe with mcda and BME sensor data
+    return: boolean Series indicating cloud presence
+    """
     if df["datetime"][0] < pd.Timestamp("20221003"):
         size = "water_0.15-17"
     else:

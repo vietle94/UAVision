@@ -1,23 +1,31 @@
+from __future__ import annotations
 import numpy as np
+from numpy.typing import NDArray
 import importlib.resources
 import pandas as pd
+from typing import Sequence
 
-n2_binedges = (
+n2_binedges: NDArray[np.float64] = np.fromstring(
     importlib.resources.files("UAVision.bin_edges")
     .joinpath("opcN2_binedges.txt")
-    .read_text()
+    .read_text(),
+    sep="\n",
 )
-n2_binedges = np.fromstring(n2_binedges, sep="\n")
 
-n3_binedges = (
+n3_binedges: NDArray[np.float64] = np.fromstring(
     importlib.resources.files("UAVision.bin_edges")
     .joinpath("opcN3_binedges.txt")
-    .read_text()
+    .read_text(),
+    sep="\n",
 )
-n3_binedges = np.fromstring(n3_binedges, sep="\n")
 
 
-def calculate_concentration(df, bin_label, flow_label=None, period_label=None):
+def calculate_concentration(
+    df: pd.DataFrame,
+    bin_label: Sequence[str],
+    flow_label: str | None = None,
+    period_label: str | None = None,
+) -> pd.DataFrame | tuple[pd.DataFrame, pd.DataFrame]:
     """
     Calculate dN/dLogDp from OPC N2 and N3
     df: dataframe containing bin counts and flow rate
@@ -42,7 +50,13 @@ def calculate_concentration(df, bin_label, flow_label=None, period_label=None):
         dndlogdp = concentration.div(dlog_bin, axis=1)
         return concentration, dndlogdp
 
-def calculate_lag(df, var1, var2, lag):
+    else:
+        raise ValueError(
+            f"bin_label must have 16 (OPC-N2) or 24 (OPC-N3) columns, got {len(bin_label)}"
+        )
+
+
+def calculate_lag(df: pd.DataFrame, var1: str, var2: str, lag: int) -> int:
     """
     Calculate the lag between two variables, same dataframe.
     Please resample the dataframe so spacing is consistent
@@ -50,13 +64,19 @@ def calculate_lag(df, var1, var2, lag):
     var1: first variable column name (string)
     var2: second variable column name (string)
     lag: maximum lag to consider (int)
+    return: lag value at maximum correlation (int)
     """
-    lag_range = np.arange(-lag, lag+1)
-    df_corr = pd.DataFrame({
-        'covariance': np.array([df[var1].corr(df[var2].shift(x)) for x in lag_range]),
-        'lag': lag_range})
-    df_corr['covariance'] = df_corr['covariance'].abs()
-    imax = df_corr['covariance'].idxmax()
-    lag_max = df_corr['lag'][imax]
+    lag_range = np.arange(-lag, lag + 1)
+    df_corr = pd.DataFrame(
+        {
+            "covariance": np.array(
+                [df[var1].corr(df[var2].shift(int(x))) for x in lag_range]
+            ),
+            "lag": lag_range,
+        }
+    )
+    df_corr["covariance"] = df_corr["covariance"].abs()
+    imax = df_corr["covariance"].idxmax()
+    lag_max = df_corr["lag"][imax]
     print(f"Max correlation when shift forward {var2} by {lag_max} units")
     return lag_max

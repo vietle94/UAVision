@@ -4,11 +4,32 @@ import os
 import re
 from functools import reduce
 import argparse
+from os import PathLike
+import csv
 
 
-def merge_sensor_data(dir_in, dir_out):
-    dir_in = dir_in.replace("\\", "/") + "/"
-    dir_out = dir_out.replace("\\", "/") + "/"
+def _detect_delimiter(path: str) -> str:
+    with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        sample = fh.read(2048)
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
+        return dialect.delimiter
+    except csv.Error:
+        return ","
+
+
+def merge_sensor_data(
+    dir_in: str | PathLike[str], dir_out: str | PathLike[str]
+) -> None:
+    """
+    Merge sensor data from multiple files in subdirectories.
+
+    dir_in: input directory containing subdirectories with sensor files
+    dir_out: output directory for merged CSV files
+    return: None
+    """
+    dir_in = str(dir_in).replace("\\", "/") + "/"
+    dir_out = str(dir_out).replace("\\", "/") + "/"
 
     sub_dir = [f.path for f in os.scandir(dir_in) if f.is_dir()]
     file_types = [".csv", ".txt"]
@@ -25,23 +46,17 @@ def merge_sensor_data(dir_in, dir_out):
                 "instrument_name": instrument_name,
             }
         )
-        data = {}
-        for instrument, grp in file_summary.groupby("instrument_name"):
-            data[instrument] = pd.concat(
-                [
-                    pd.read_csv(
-                        x,
-                        index_col=False,
-                        sep=pd.read_csv(
-                            x, sep=None, iterator=True, nrows=2
-                        )._engine.data.dialect.delimiter,
-                    )
-                    for x in grp.file_path
-                ],
-                ignore_index=True,
-            )
 
-        for key, val in data.items():
+        data: dict[str, pd.DataFrame] = {}
+        for instrument, grp in file_summary.groupby("instrument_name"):
+            instrument = str(instrument)
+            dfs: list[pd.DataFrame] = [
+                pd.read_csv(x, index_col=False, sep=_detect_delimiter(x))
+                for x in grp.file_path
+            ]
+            data[instrument] = pd.concat(dfs, ignore_index=True)
+
+        for key in data.keys():
             data[key] = data[key].dropna(axis=0, how="all")
             data[key].columns = data[key].columns.str.replace(" ", "")
             if "datetime" in data[key].columns:
@@ -52,7 +67,9 @@ def merge_sensor_data(dir_in, dir_out):
                     data[key].drop(["date"], axis=1, inplace=True)
                 else:
                     data[key]["datetime"] = pd.to_datetime(
-                        data[key]["date"] + " " + data[key]["time"]
+                        data[key]["date"].astype(str)
+                        + " "
+                        + data[key]["time"].astype(str)
                     )
                     data[key].drop(["date", "time"], axis=1, inplace=True)
             data[key] = data[key].set_index("datetime").resample("1s").mean()

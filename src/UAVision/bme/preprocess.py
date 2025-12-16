@@ -1,10 +1,18 @@
 import pandas as pd
 import numpy as np
+from numpy.typing import NDArray
+from os import PathLike
 
-def calculate_height(p0, p1, T0, T1):
+
+def calculate_height(
+    p0: float | NDArray[np.float64],
+    p1: float | NDArray[np.float64],
+    T0: float | NDArray[np.float64],
+    T1: float | NDArray[np.float64],
+) -> float | NDArray[np.float64]:
     """
     Calculate height based on hydrostatic pressure equation, assuming a uniform layer
-    
+
     p0: pressure at lower level (hPa)
     p1: pressure at upper level (hPa)
     T0: temperature at lower level (K)
@@ -16,9 +24,13 @@ def calculate_height(p0, p1, T0, T1):
     return height
 
 
-def calculate_height_df(df, p, T):
+def calculate_height_df(
+    df: pd.DataFrame,
+    p: str,
+    T: str,
+) -> pd.DataFrame:
     """
-    Advance calculation of height based on hydrostatic pressure equation, 
+    Advance calculation of height based on hydrostatic pressure equation,
     assuming mini uniform layer
     df: dataframe containing pressure and temperature columns
     p: pressure column name (string) (hPa)
@@ -27,12 +39,12 @@ def calculate_height_df(df, p, T):
     """
     df_height = df.copy()
     df_height.dropna(subset=p, inplace=True)
-    height = np.zeros_like(df_height[p])
+    height = np.zeros_like(df_height[p], dtype=np.float64)
     height[1:] = calculate_height(
-        df_height[p][:-1].values,
-        df_height[p][1:].values,
-        df_height[T][:-1].values,
-        df_height[T][1:].values,
+        df_height[p][:-1].to_numpy(dtype=np.float64),
+        df_height[p][1:].to_numpy(dtype=np.float64),
+        df_height[T][:-1].to_numpy(dtype=np.float64),
+        df_height[T][1:].to_numpy(dtype=np.float64),
     )
     df_height["height"] = height
     df["height"] = df_height["height"]
@@ -41,16 +53,18 @@ def calculate_height_df(df, p, T):
     return df
 
 
-def preprocess_bme(file):
+def preprocess_bme(file: str | PathLike[str]) -> pd.DataFrame:
     """
     BME processing
-    file: path to bme csv file (string)
+    file: path to bme csv file (string or PathLike)
     return: processed dataframe
     """
     df = pd.read_csv(file)
     df = df.dropna(axis=0)
     df = df.reset_index(drop=True)
-    df["datetime"] = pd.to_datetime(df["date"] + " " + df["time"])
+    df["datetime"] = pd.to_datetime(
+        df["date"].astype(str) + " " + df["time"].astype(str)
+    )
     df = df.drop(["date", "time"], axis=1)
     time_col = df.pop("datetime")
     df.insert(0, "datetime", time_col)

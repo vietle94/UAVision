@@ -1,13 +1,23 @@
 import pandas as pd
 import numpy as np
+from numpy.typing import NDArray
 import importlib.resources
+from os import PathLike
+from typing import Sequence
 
-pops_binedges = (
-    importlib.resources.files("UAVision.bin_edges").joinpath("pops_binedges.txt").read_text()
+pops_binedges_string = (
+    importlib.resources.files("UAVision.bin_edges")
+    .joinpath("pops_binedges.txt")
+    .read_text()
 )
-pops_binedges = np.fromstring(pops_binedges, sep="\n")
+pops_binedges = np.fromstring(pops_binedges_string, sep="\n")
 
-def preprocess_pops(file, size=None, drop_aux=True):
+
+def preprocess_pops(
+    file: str | PathLike[str],
+    size: Sequence[float] | NDArray[np.float64] | None = None,
+    drop_aux: bool = True,
+) -> pd.DataFrame:
     """
     POPS processing
 
@@ -32,7 +42,9 @@ def preprocess_pops(file, size=None, drop_aux=True):
     elif isinstance(size, (list, tuple, np.ndarray, pd.Series)):
         arr = np.asarray(size, dtype=float)
         if arr.ndim != 1 or arr.size != 17:
-            raise ValueError("When providing 'size' as an array it must be a 1-D array of 17 bin edges.")
+            raise ValueError(
+                "When providing 'size' as an array it must be a 1-D array of 17 bin edges."
+            )
         binedges = arr
     else:
         raise TypeError("size must be None or an array-like of 17 bin edges")
@@ -59,14 +71,14 @@ def preprocess_pops(file, size=None, drop_aux=True):
     ]
     dndlog_label = ["bin" + str(x) + "_pops (dN/dlogDp)" for x in range(1, 17)]
     conc_label = ["bin" + str(x) + "_pops (cm-3)" for x in range(1, 17)]
-    df = df.rename(columns={x:y for x,y in zip(pops_binlab, conc_label)})
+    df = df.rename(columns={x: y for x, y in zip(pops_binlab, conc_label)})
     # Calculate concentration cm-3
     df[conc_label] = df[conc_label].div(df[" POPS_Flow"] * 16.6667, axis=0)
     # Calculate dN/dlogDp
     dndlog = df[conc_label].div(dlog_bin, axis=1)
     dndlog.columns = dndlog_label
     df = pd.concat([df, dndlog], axis=1)
-        
+
     if drop_aux:
         df = df.drop(
             [
@@ -102,7 +114,7 @@ def preprocess_pops(file, size=None, drop_aux=True):
             " PartCon": "N_conc_pops (cm-3)",
             " P": "press_pops (hPa)",
             " POPS_Flow": "flow_rate_pops (l/m)",
-            " Temp": "temp_pops (C)"
+            " Temp": "temp_pops (C)",
         },
         axis=1,
     )

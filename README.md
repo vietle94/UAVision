@@ -1,23 +1,29 @@
 # UAVision
+
 UAVision is a Python package for UAV instrument data processing (particle counters, BME sensors, POPS, mCDA, OPC).
 It provides preprocessing utilities, concentration calculations.
 
 ## Features
+
 - Preprocessing helpers and utilities for particle counters and sensor streams
 - Concentration / lag helpers for aerosol instruments (OPC / Mavic-like devices)
 - Bundled bin-edge and mid-bin resources for common instrument presets
 - Lazy-loading top-level submodules for fast imports
 
 ## Package layout
+
 Top-level submodules (imported lazily): `mavic`, `bme`, `cpc`, `mcda`, `pops`
 
 ## Installation
+
 From PyPI (when published):
+
 ```sh
 pip install UAVision
 ```
 
 From local source (development install):
+
 ```sh
 git clone https://github.com/vietle94/UAVision.git
 cd UAVision
@@ -25,7 +31,9 @@ pip install -e .
 ```
 
 ## Quick usage
+
 Show package version and available submodules:
+
 ```py
 import UAVision
 print(UAVision.__version__)
@@ -33,6 +41,7 @@ print(UAVision.__all__)  # declared submodules
 ```
 
 Access a submodule (imports lazily on first access):
+
 ```py
 #    mCDA processing, calculate derived parameters as well
 from UAVision.mcda.preprocess import preprocess_mcda
@@ -48,7 +57,7 @@ from UAVision.pops.preprocess import preprocess_pops
 df = preprocess_pops("data_path/datafile.csv", # path to pops csv file (string)
                     size=None, # optional. If None uses bundled pops_binedges (bin edges).
                             # If array-like is provided it must be the bin edges with length 17.
-                    drop_aux=True) # bool, if True drop auxiliary columns (default True). 
+                    drop_aux=True) # bool, if True drop auxiliary columns (default True).
                             # If False keep them.
 #    return: processed dataframe
 
@@ -89,6 +98,7 @@ print(n3_binedges)
 ```
 
 # Contributing / Contact
+
 Github: https://github.com/vietle94/UAVision
 
 Author: viet.le@fmi.fi — pull requests and bug reports welcome.

@@ -11,13 +11,7 @@ except _metadata.PackageNotFoundError:
     __version__ = "1.0.0"
 
 # submodules provided by this package; they will be imported lazily
-_SUBMODULES = {
-    "mavic",
-    "bme",
-    "cpc",
-    "mcda",
-    "pops"
-}
+_SUBMODULES = {"mavic", "bme", "cpc", "mcda", "pops"}
 
 __all__ = list(_SUBMODULES) + ["__version__"]
 

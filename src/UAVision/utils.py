@@ -1,6 +1,8 @@
 import numpy as np
+from numpy.typing import NDArray
 
-def calculate_binedges(midbin):
+
+def calculate_binedges(midbin: NDArray[np.float64]) -> NDArray[np.float64]:
     """
     calculate bin edges from mid bin
     midbin: mid bin array
@@ -15,11 +17,12 @@ def calculate_binedges(midbin):
     return binedges
 
 
-def calculate_midbin(binedges):
+def calculate_midbin(binedges: NDArray[np.float64]) -> NDArray[np.float64]:
     """
     calculate midbin from bin edges
     binedges: binedges array
     return: midbin array
     """
+
     midbin = (binedges[1:] + binedges[:-1]) / 2
     return midbin

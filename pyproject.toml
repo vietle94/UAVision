@@ -7,10 +7,13 @@ name = "UAVision"
 version = "1.0.5"
 description = "UAV instrument data processing"
 readme = "README.md"
-authors = [{ name = "VIET LE", email = "viet.le@fmi.fi" }]
-license = { file = "LICENSE" }
+authors = [{name = "VIET LE", email = "viet.le@fmi.fi"}]
+license = {file = "LICENSE"}
 requires-python = ">=3.11"
 dependencies = ["numpy", "matplotlib", "pandas"]
+
+[project.optional-dependencies]
+dev = ["mypy", "pre-commit"]
 
 [tool.setuptools.packages.find]
 where = ["src/"]
