@@ -73,7 +73,7 @@ def preprocess_pops(
     conc_label = ["bin" + str(x) + "_pops (cm-3)" for x in range(1, 17)]
     df = df.rename(columns={x: y for x, y in zip(pops_binlab, conc_label)})
     # Calculate concentration cm-3
-    df[conc_label] = df[conc_label].div(df[" POPS_Flow"] * 16.6667, axis=0)
+    df[conc_label] = df[conc_label].div(df[" POPS_Flow"], axis=0)
     # Calculate dN/dlogDp
     dndlog = df[conc_label].div(dlog_bin, axis=1)
     dndlog.columns = dndlog_label
