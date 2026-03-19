@@ -113,7 +113,7 @@ def preprocess_pops(
         {
             " PartCon": "N_conc_pops (cm-3)",
             " P": "press_pops (hPa)",
-            " POPS_Flow": "flow_rate_pops (l/m)",
+            " POPS_Flow": "flow_rate_pops (cm3/s)",
             " Temp": "temp_pops (C)",
         },
         axis=1,
